@@ -1,66 +1,69 @@
 /**
- * Created by hao.cheng on 2017/4/16.
+ * Created by hao.cheng on 2017/4/14.
  */
-import { Form, Icon, Input, Button } from 'antd';
+import React, { Component } from 'react';
+import { Form, Icon, Input, Button, Checkbox } from 'antd';
+import axios from 'axios';
 const FormItem = Form.Item;
-import React from 'react'
-function hasErrors(fieldsError) {
-  return Object.keys(fieldsError).some(field => fieldsError[field]);
-}
+import { Router, Route, Link, hashHistory, IndexRoute, Redirect, IndexLink } from 'react-router';
 
-class Login extends React.Component {
-  componentDidMount() {
-    // To disabled submit button at the beginning.
-    this.props.form.validateFields();
-  }
+class NormalLoginForm extends Component {
   handleSubmit = (e) => {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-        console.log('Received values of form: ', values);
+        // this.props.routes.push('/myTable')
+        axios.get('/login', {
+          params:{
+            name: values.userName,
+            password: values.password
+          }
+         
+        }).then(
+          (res) => {
+            if (res.data.code == 0) {
+              this.props.history.push('/myTable')
+            }
+            else {
+              alert(res.data.msg)
+            }
+          }
+        )
       }
     });
-  }
+  };
   render() {
-    const { getFieldDecorator, getFieldsError, getFieldError, isFieldTouched } = this.props.form;
-
-    // Only show error after a field is touched.
-    const userNameError = isFieldTouched('userName') && getFieldError('userName');
-    const passwordError = isFieldTouched('password') && getFieldError('password');
+    const { getFieldDecorator } = this.props.form;
     return (
-      <Form layout="inline" onSubmit={this.handleSubmit}>
-        <FormItem
-          validateStatus={userNameError ? 'error' : ''}
-          help={userNameError || ''}
-        >
-          {getFieldDecorator('userName', {
-            rules: [{ required: true, message: 'Please input your username!' }],
-          })(
-            <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Username" />
-          )}
-        </FormItem>
-        <FormItem
-          validateStatus={passwordError ? 'error' : ''}
-          help={passwordError || ''}
-        >
-          {getFieldDecorator('password', {
-            rules: [{ required: true, message: 'Please input your Password!' }],
-          })(
-            <Input prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="Password" />
-          )}
-        </FormItem>
-        <FormItem>
-          <Button
-            type="primary"
-            htmlType="submit"
-            disabled={hasErrors(getFieldsError())}
-          >
-            Log in
+      <div className="login-box">
+        <Form onSubmit={this.handleSubmit} style={{ maxWidth: '300px' }}>
+          <FormItem>
+            {getFieldDecorator('userName', {
+              rules: [{ required: true, message: '请输入用户名!' }],
+            })(
+              <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="用户名" />
+            )}
+          </FormItem>
+          <FormItem>
+            {getFieldDecorator('password', {
+              rules: [{ required: true, message: '请输入密码!' }],
+            })(
+              <Input prefix={<Icon type="lock" style={{ fontSize: 13 }} />} type="password" placeholder="密码" />
+            )}
+          </FormItem>
+          <FormItem>
+            <Button type="primary" htmlType="submit" className="login-form-button" style={{ width: '100%' }}>
+              登录
           </Button>
-        </FormItem>
-      </Form>
+
+          </FormItem>
+        </Form>
+      </div>
+
     );
   }
 }
 
-export default Login;
+const login = Form.create()(NormalLoginForm);
+
+export default login;

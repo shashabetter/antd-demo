@@ -6,34 +6,22 @@ import React from 'react';
 import axios from 'axios';
 import qs from 'qs'
 
-import { Table, Input, Popconfirm, Row, Col, Card, Tabs, Icon, Radio, Button, Upload,Alert } from 'antd';
+import { Table, Input, Popconfirm, Row, Col, Card, Tabs, Icon, Radio, Button, Upload, Alert } from 'antd';
 const TabPane = Tabs.TabPane;
 
 const props = {
-    action: '//jsonplaceholder.typicode.com/posts/',
+    action: '/order/import',
     onChange({ file, fileList }) {
         if (file.status !== 'uploading') {
-            console.log(file, fileList);
+            if(file.response.code==0){
+                console.log(file, fileList);
+            }else{
+                alert(file.response.msg)
+            }
+         
         }
     },
-    defaultFileList: [{
-        uid: 1,
-        name: 'xxx.png',
-        status: 'done',
-        reponse: 'Server Error 500', // custom error message to show
-        url: 'http://www.baidu.com/xxx.png',
-    }, {
-        uid: 2,
-        name: 'yyy.png',
-        status: 'done',
-        url: 'http://www.baidu.com/yyy.png',
-    }, {
-        uid: 3,
-        name: 'zzz.png',
-        status: 'error',
-        reponse: 'Server Error 500', // custom error message to show
-        url: 'http://www.baidu.com/zzz.png',
-    }],
+
 };
 
 class EditableCell extends React.Component {
@@ -96,7 +84,7 @@ class EditableTable extends React.Component {
         this.state = {
             totalPage: '',
             data: [],
-            interface:[
+            interface: [
 
             ]
         };
@@ -108,25 +96,16 @@ class EditableTable extends React.Component {
     }
 
     getlist(pageNum) {
-    //     var reqData={
-    //         pageNum:pageNum
-    //     }
-    //     let request = new Request('./api', {
-    //         method: 'POST', 
-    //         mode: 'no-cors',
-    //         body:JSON.stringify(reqData),
-    //         headers:myHeaders
-    //  });
-    //     fetch('')
-        axios.get('http://42.121.31.148:8080/order/query', { param: { pageNum: pageNum } }).then(response => {
+        axios.get('/order/query', { param: { pageNum: pageNum } }).then(response => {
             let res = response.data;
             this.state.totalPage = res.total;
             res.data.forEach((item) => {
                 item.editable = false;
             })
-            console.log(res.data)
             this.state.data = res.data;
             this.setState(this.state)
+        }).catch((err) => {
+            alert(err)
         })
     }
     renderColumns(data, index, key, text) {
@@ -156,27 +135,21 @@ class EditableTable extends React.Component {
     edit(index) {
         const { data } = this.state;
         data[index].editable = true;
-        // Object.keys(data[index]).forEach((item) => {
-        //     if (data[index][item] && typeof data[index][item].editable !== 'undefined') {
-        //         data[index][item].editable = true;
-        //     }
-        // });
         this.setState({ data });
     }
     delete(index) {
         const { data } = this.state;
-        data.splice(index, 1);
-        axios.get('http://42.121.31.148:8080/order/delete', {
-            params:{
+        // data.splice(index, 1);
+        axios.get('/order/delete', {
+            params: {
                 id: data[index].id
             }
-           
+
         }).then(
-            response=>{
-                if(response.data.forEachcode!=0){
+            response => {
+                if (response.data.code != 0) {
                     alert(response.data.msg);
-                   
-                }else{
+                } else {
                     this.getlist(1)
                 }
             }
@@ -186,39 +159,34 @@ class EditableTable extends React.Component {
     }
     editDone(index, type) {
         const { data } = this.state;
-        // Object.keys(data[index]).forEach((item) => {
-        //     if (data[index][item] && typeof data[index][item].editable !== 'undefined') {
-        //         data[index][item].editable = false;
-        //         data[index][item].status = type;
-        //     }
-        // });
-
         if (type == "save") {
             //保存
             // alert('保存');
-            data.forEach((item) => {
-                item.editable = false;
-            })
+            // data.forEach((item) => {
+            //     item.editable = false;
+            // })
+            
             const reqData = data[index];
-            let ajaxData={
+            let ajaxData = {
                 id: reqData.id,
                 orderNo: reqData.orderNo,
                 date: reqData.date,
-                destProvince:reqData.destProvince,
+                destProvince: reqData.destProvince,
                 weight: reqData.weight,
                 firstPrice: reqData.firstPrice,
                 continuePrice: reqData.continuePrice,
                 totalPrice: reqData.totalPrice
             }
             if (!ajaxData.id) delete ajaxData.id;
-            axios.get('http://42.121.31.148:8080/order/save', {
+            axios.get('/order/save', {
                 params: ajaxData
             }).then(
-                response=>{
-                    if(response.code!=0){
+                response => {
+                    if (response.data.code != 0) {
                         alert(response.data.msg);
-                        
-                    }else{
+
+                    } else {
+                        data[index].editable=false;
                         this.getlist(1)
                     }
                 }
@@ -226,6 +194,7 @@ class EditableTable extends React.Component {
             )
             console.log(data[index])
         } else {
+            data.splice(0,1);
             data.forEach((item) => {
                 item.editable = false;
             })
@@ -241,7 +210,7 @@ class EditableTable extends React.Component {
     addRecord() {
         const { data } = this.state;
         const addList = {
-            editable:true,
+            editable: true,
             id: "",
             orderNo: "",
             date: "",

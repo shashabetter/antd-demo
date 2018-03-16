@@ -19,18 +19,18 @@ module.exports = {
 
     module: {
         loaders: [
-            { test: /\.js$/, loader: "jsx!babel", include: /src/},
-            { test: /\.css$/, loader: ExtractTextPlugin.extract("style", "css!postcss")},
-            { test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css!postcss!sass")},
-            { test: /\.(png|jpg|gif)$/, loader: 'url?limit=819200'}
+            { test: /\.js$/, loader: "jsx!babel", include: /src/ },
+            { test: /\.css$/, loader: ExtractTextPlugin.extract("style", "css!postcss") },
+            { test: /\.scss$/, loader: ExtractTextPlugin.extract("style", "css!postcss!sass") },
+            { test: /\.(png|jpg|gif)$/, loader: 'url?limit=819200' }
         ]
     },
 
     babel: {
         presets: ['es2015', 'stage-0', 'react'],
         plugins: ['transform-runtime', ['import', {
-          libraryName: 'antd',
-          style: 'css'
+            libraryName: 'antd',
+            style: 'css'
         }]]
     },
 
@@ -43,14 +43,32 @@ module.exports = {
         port: 8888,
         colors: true,  //终端中输出结果为彩色
         historyApiFallback: true,  //不跳转
-        inline: true  //实时刷新
+        inline: true,  //实时刷新
+        proxy: {
+            '/order/*': {
+                target: 'http://42.121.31.148:8080',
+                secure: false
+            },
+            '/login': {
+                target: 'http://42.121.31.148:8080',
+                secure: false
+            },
+            '/logout': {
+                target: 'http://42.121.31.148:8080',
+                secure: false
+            },
+            '/islogin':{
+                target: 'http://42.121.31.148:8080',
+                secure: false
+            }
+        }
     },
 
     plugins: [
         new ExtractTextPlugin('main.css'),
         new CommonsChunkPlugin({
-           name: 'vendor',
-           filename: 'vendor.js'
+            name: 'vendor',
+            filename: 'vendor.js'
         })
     ]
 
